@@ -1,46 +1,21 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: pickleball_postgres
-    environment:
-      POSTGRES_DB: pickleball_tournament_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
+  db:
+    image: bitnami/postgresql:17.4.0
+    platform: linux/amd64
     ports:
-      - "5433:5432"
+      - ${POSTGRESQL_PORT}:5432
+    restart: always
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # FastAPI Backend
-  backend:
-    build: .
-    container_name: pickleball_backend
+      - db-data:/bitnami/postgresql
     environment:
-      DATABASE_URL: postgresql://postgres:root@postgres:5432/pickleball_tournament_db
-      SECRET_KEY: your-secret-key-here
-      DEBUG: "True"
-    ports:
-      - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./app:/app/app
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
+      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+    networks:
+      - docker-fastapi-base
 volumes:
-  postgres_data:
+  db-data:
+
+networks:
+  docker-fastapi-base:
+    driver: bridge

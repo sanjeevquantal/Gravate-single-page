@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-from .models import MatchStatus
+from models.match import MatchStatus
 
 class MatchCreate(BaseModel):
     team1: str
